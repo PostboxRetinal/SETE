@@ -1,0 +1,2 @@
+auth    required     pam_access.so accessfile=/etc/apache2/apache_blacklist.conf
+auth    required       pam_unix.so
