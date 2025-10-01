@@ -1,0 +1,20 @@
+;Reverse zone file for 192.168.56.0/24
+$TTL    604800
+@       IN      SOA     maestro.empresa.local. admin.empresa.local. (
+                     2025093001	        ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+
+; Name Servers
+@       IN      NS      maestro.empresa.local.
+@       IN      NS      esclavo.empresa.local.
+
+; PTR Records
+2      IN      PTR     maestro.empresa.local.
+3      IN      PTR     esclavo.empresa.local.
+4      IN      PTR     firewall.empresa.local.
+10     IN      PTR     smb-windows.empresa.local.
+11     IN      PTR     smb-alterno.empresa.local.
+12     IN      PTR     smb-3.empresa.local.

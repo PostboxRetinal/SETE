@@ -1,0 +1,30 @@
+;BIND data file for empresa.local
+$TTL    604800
+@       IN      SOA     maestro.empresa.local. admin.empresa.local. (
+                     2025093002 	; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+
+; Servidores de nombres
+@       IN      NS      maestro.empresa.local.
+@       IN      NS      esclavo.empresa.local.
+
+; Registros A
+@		            IN	    A      	192.168.56.2
+www             IN      A       192.168.56.2
+maestro         IN      A       192.168.56.2
+esclavo         IN      A       192.168.56.3
+firewall        IN      A       192.168.56.4
+smb-windows	    IN	    A	      192.168.56.10 ;testing
+smb-alterno	    IN	    A	      192.168.56.11 ;testing2
+smb-3		        IN	    A	      192.168.56.12 ;demo
+
+; Registros CNAME
+web             IN      CNAME   www
+ftp             IN      CNAME   maestro
+gateway         IN      CNAME   firewall
+staging		      IN	    CNAME	  smb-windows ;CNAME para testeo
+production	    IN	    CNAME	  smb-alterno ;CNAME para testeo2
+cloud		        IN	    CNAME	  smb-3 ;CNAME para testeo2
