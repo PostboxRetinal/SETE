@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  # Base de datos MySQL
+  db:
+    image: mysql:8.0
+    container_name: miniwebapp-db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: miniwebapp
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Aplicación Web con Nginx y SSL
+  webapp:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: miniwebapp-web
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - app-network
+    environment:
+      - FLASK_ENV=production
+      - MYSQL_HOST=db
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=root
+      - MYSQL_DB=miniwebapp
+    restart: unless-stopped
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
