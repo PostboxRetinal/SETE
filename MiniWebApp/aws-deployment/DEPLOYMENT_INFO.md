@@ -100,17 +100,7 @@ ssh -i "deployssh.pem" ubuntu@TU-INSTANCIA-EC2.compute-1.amazonaws.com "cd ~/min
 
 ---
 
-## ✅ PASO 8: Verificar Estado de Contenedores
-
-```powershell
-ssh -i "deployssh.pem" ubuntu@TU-INSTANCIA-EC2.compute-1.amazonaws.com "cd ~/miniwebapp && docker compose ps"
-```
-
-**Resultado esperado**: Todos los contenedores deben estar en estado "Up" o "Running"
-
----
-
-## 📊 PASO 9: Ver Logs (Opcional)
+## 📊 PASO 8: Ver Logs (Opcional)
 
 ### Ver logs de todos los servicios:
 ```powershell
@@ -124,7 +114,7 @@ ssh -i "deployssh.pem" ubuntu@TU-INSTANCIA-EC2.compute-1.amazonaws.com "cd ~/min
 
 ---
 
-## 🌐 PASO 10: Acceder a los Servicios
+## 🌐 PASO 9: Acceder a los Servicios
 
 Reemplaza `TU-INSTANCIA-EC2` con tu DNS público de AWS:
 
