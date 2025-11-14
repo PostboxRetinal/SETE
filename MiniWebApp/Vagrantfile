@@ -1,0 +1,122 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# Vagrantfile para CloudNova - Proyecto Servicios Telemáticos
+# Despliegue local con Docker, Prometheus, Grafana y monitoreo completo
+
+Vagrant.configure("2") do |config|
+  
+  # ===========================================
+  # SERVIDOR WEB CON DOCKER Y MONITOREO
+  # ===========================================
+  config.vm.define :cloudnova_local do |server|
+    server.vm.box = "generic/ubuntu2204"
+    server.vm.hostname = "cloudnova-local"
+    
+    # Configuración de red
+    server.vm.network "private_network", ip: "192.168.60.10"
+    
+    # Configuración de puertos
+    server.vm.network "forwarded_port", guest: 80, host: 8080, protocol: "tcp"
+    server.vm.network "forwarded_port", guest: 443, host: 8443, protocol: "tcp"
+    server.vm.network "forwarded_port", guest: 9090, host: 9090, protocol: "tcp"  # Prometheus
+    server.vm.network "forwarded_port", guest: 3000, host: 3000, protocol: "tcp"  # Grafana
+    server.vm.network "forwarded_port", guest: 9100, host: 9100, protocol: "tcp"  # Node Exporter
+    
+    # Recursos de la VM
+    server.vm.provider "virtualbox" do |vb|
+      vb.name = "CloudNova-Local"
+      vb.memory = "4096"
+      vb.cpus = 2
+      vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+      vb.customize ["modifyvm", :id, "--natdnsproxy1", "on"]
+      vb.customize ["modifyvm", :id, "--vram", "16"]  # Reducir VRAM a 16MB
+    end
+    
+    # Sincronizar carpeta del proyecto
+    server.vm.synced_folder ".", "/home/vagrant/miniwebapp", 
+      owner: "vagrant", 
+      group: "vagrant"
+    
+    # Aprovisionamiento: Instalación de Docker y Docker Compose
+    server.vm.provision "shell", name: "install-docker", inline: <<-SHELL
+      echo "==========================================="
+      echo "Instalando Docker y Docker Compose..."
+      echo "==========================================="
+      
+      # Actualizar sistema
+      apt-get update
+      apt-get upgrade -y
+      
+      # Instalar dependencias
+      apt-get install -y \
+        apt-transport-https \
+        ca-certificates \
+        curl \
+        gnupg \
+        lsb-release \
+        git \
+        vim \
+        htop
+      
+      # Agregar repositorio de Docker
+      curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+      echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+      
+      # Instalar Docker
+      apt-get update
+      apt-get install -y docker-ce docker-ce-cli containerd.io
+      
+      # Agregar usuario vagrant al grupo docker
+      usermod -aG docker vagrant
+      
+      # Instalar Docker Compose
+      curl -L "https://github.com/docker/compose/releases/download/v2.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+      chmod +x /usr/local/bin/docker-compose
+      
+      # Iniciar Docker
+      systemctl enable docker
+      systemctl start docker
+      
+      echo "Docker instalado correctamente:"
+      docker --version
+      docker-compose --version
+    SHELL
+    
+    # Aprovisionamiento: Desplegar aplicación con Docker Compose
+    server.vm.provision "shell", name: "deploy-app", privileged: false, inline: <<-SHELL
+      echo "==========================================="
+      echo "Desplegando aplicación con Docker Compose..."
+      echo "==========================================="
+      
+      cd /home/vagrant/miniwebapp
+      
+      # Construir y levantar contenedores (con newgrp para activar permisos docker)
+      sg docker -c "docker-compose up -d --build"
+      
+      echo "==========================================="
+      echo "Esperando a que los servicios estén listos..."
+      echo "==========================================="
+      sleep 30
+      
+      # Verificar estado de los contenedores
+      sg docker -c "docker-compose ps"
+      
+      echo "==========================================="
+      echo "Despliegue completado exitosamente!"
+      echo "==========================================="
+      echo ""
+      echo "Accede a los servicios en:"
+      echo "  - Web App HTTP:  http://192.168.60.10 o http://localhost:8080"
+      echo "  - Web App HTTPS: https://192.168.60.10 o https://localhost:8443"
+      echo "  - Prometheus:    http://192.168.60.10:9090 o http://localhost:9090"
+      echo "  - Grafana:       http://192.168.60.10:3000 o http://localhost:3000"
+      echo "  - Node Exporter: http://192.168.60.10:9100 o http://localhost:9100"
+      echo ""
+      echo "Credenciales Grafana: admin / admin"
+      echo "==========================================="
+    SHELL
+    
+  end
+  
+end

@@ -1,0 +1,110 @@
+# Reglas de alertas para Prometheus - CloudNova
+# Alertas configuradas para monitoreo de sistema y aplicación
+
+groups:
+  - name: system_alerts
+    interval: 30s
+    rules:
+      
+      # Alerta: CPU alta (mayor a 80%)
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 2m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "Alto uso de CPU detectado"
+          description: "El uso de CPU en {{ $labels.instance }} es {{ $value }}% (umbral: 80%)"
+          
+      # Alerta: CPU crítica (mayor a 90%)
+      - alert: CriticalCPUUsage
+        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 90
+        for: 1m
+        labels:
+          severity: critical
+          component: system
+        annotations:
+          summary: "Uso crítico de CPU"
+          description: "El uso de CPU en {{ $labels.instance }} es {{ $value }}% - CRÍTICO"
+
+      # Alerta: Memoria baja (menos de 20% disponible)
+      - alert: LowMemory
+        expr: (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes * 100) < 20
+        for: 2m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "Memoria disponible baja"
+          description: "Solo {{ $value }}% de memoria disponible en {{ $labels.instance }}"
+
+      # Alerta: Memoria crítica (menos de 10% disponible)
+      - alert: CriticalMemory
+        expr: (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes * 100) < 10
+        for: 1m
+        labels:
+          severity: critical
+          component: system
+        annotations:
+          summary: "Memoria críticamente baja"
+          description: "Solo {{ $value }}% de memoria disponible en {{ $labels.instance }} - CRÍTICO"
+
+      # Alerta: Espacio en disco bajo (menos de 20%)
+      - alert: LowDiskSpace
+        expr: (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"} * 100) < 20
+        for: 5m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "Espacio en disco bajo"
+          description: "Solo {{ $value }}% de espacio disponible en disco raíz de {{ $labels.instance }}"
+
+      # Alerta: Espacio en disco crítico (menos de 10%)
+      - alert: CriticalDiskSpace
+        expr: (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"} * 100) < 10
+        for: 2m
+        labels:
+          severity: critical
+          component: system
+        annotations:
+          summary: "Espacio en disco críticamente bajo"
+          description: "Solo {{ $value }}% de espacio disponible en disco raíz de {{ $labels.instance }} - CRÍTICO"
+
+      # Alerta: Instancia caída
+      - alert: InstanceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: monitoring
+        annotations:
+          summary: "Instancia no responde"
+          description: "La instancia {{ $labels.instance }} del job {{ $labels.job }} está caída"
+
+  - name: application_alerts
+    interval: 30s
+    rules:
+      
+      # Alerta: Alto número de conexiones de red
+      - alert: HighNetworkTraffic
+        expr: rate(node_network_receive_bytes_total[5m]) > 100000000
+        for: 5m
+        labels:
+          severity: warning
+          component: network
+        annotations:
+          summary: "Alto tráfico de red"
+          description: "Tráfico de red alto en {{ $labels.instance }}: {{ $value }} bytes/s"
+
+      # Alerta: Alto I/O de disco
+      - alert: HighDiskIO
+        expr: rate(node_disk_io_time_seconds_total[5m]) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          component: storage
+        annotations:
+          summary: "Alto I/O de disco"
+          description: "I/O de disco alto en {{ $labels.instance }}: {{ $value }}"
