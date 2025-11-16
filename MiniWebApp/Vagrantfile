@@ -57,9 +57,9 @@ Vagrant.configure("2") do |config|
       
       # Agregar usuario vagrant al grupo docker
       usermod -aG docker vagrant
-      
-      # Imprimir versiones instaladas
-      echo "docker instalado correctamente:"
+      echo "==========================================="
+      echo "Docker instalado correctamente, reiniciando VM para aplicar cambios de grupo..."
+      echo "==========================================="
     SHELL
     # Aprovisionamiento: Reiniciar VM para aplicar cambios de grupo docker
     server.vm.provision "reload"
@@ -84,15 +84,15 @@ Vagrant.configure("2") do |config|
       sg docker -c "docker compose ps"
       
       echo "==========================================="
-      echo "Despliegue completado exitosamente!"
+      echo "Desplegado 10 de 10 :)"
       echo "==========================================="
       echo ""
       echo "Accede a los servicios en:"
-      echo "  - Web App HTTP:  http://192.168.60.10 o http://localhost:8080"
-      echo "  - Web App HTTPS: https://192.168.60.10 o https://localhost:8443"
-      echo "  - Prometheus:    http://192.168.60.10:9090 o http://localhost:9090"
-      echo "  - Grafana:       http://192.168.60.10:3000 o http://localhost:3000"
-      echo "  - Node Exporter: http://192.168.60.10:9100 o http://localhost:9100"
+      echo "  - webApp HTTPS:  https://192.168.60.10
+      echo "  - webApp HTTP:   http://192.168.60.10
+      echo "  - Prometheus:    http://192.168.60.10:9090
+      echo "  - Grafana:       http://192.168.60.10:3000
+      echo "  - Node Exporter: http://192.168.60.10:9100
       echo ""
       echo "Credenciales Grafana: admin / admin"
       echo "==========================================="
