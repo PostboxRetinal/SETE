@@ -248,4 +248,3 @@ ssh -i "deployssh.pem" ubuntu@$remoteHost "cd ~/miniwebapp && docker compose log
 ---
 
 **Fecha de Creación**: 14 de Noviembre de 2025
-**Fecha de Actualización**: 16 de Noviembre de 2025
