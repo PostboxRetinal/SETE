@@ -1,4 +1,3 @@
-
 CREATE DATABASE myflaskapp;
 use myflaskapp;
 

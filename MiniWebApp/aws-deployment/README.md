@@ -1,15 +1,16 @@
-# Guía de Despliegue en AWS EC2 - MiniWebApp
+# Guía de despliegue en AWS EC2 - MiniWebApp
 
-## 📋 Requisitos Previos
+## Requisitos previos
+
 - Instancia EC2 Ubuntu 22.04 en AWS
 - Archivo `deployssh.pem` con permisos configurados
 - Security Group con puertos abiertos
 
 ---
 
-## 🔓 PASO 0: Configurar Security Group en AWS
+## PASO 0: Configurar el Security Group en AWS
 
-Ve a la consola de AWS EC2 > Security Groups y abre estos puertos:
+Es necesario acceder a la consola de AWS EC2, sección **Security Groups**, y habilitar los siguientes puertos:
 
 | Puerto | Protocolo | Descripción |
 |--------|-----------|-------------|
@@ -20,21 +21,21 @@ Ve a la consola de AWS EC2 > Security Groups y abre estos puertos:
 | 9090 | TCP | Prometheus |
 | 9100 | TCP | Node Exporter |
 
-Source: `0.0.0.0/0` (o tu IP específica para mayor seguridad)
+Source: `0.0.0.0/0` (o una dirección IP específica para mayor seguridad).
 
 ---
 
-## 🚀 PASO 1: Instalar Docker y Docker Compose en EC2
+## PASO 1: Instalar Docker y Docker Compose en EC2
 
 ```powershell
 ssh -i "deployssh.pem" ubuntu@TU-INSTANCIA-EC2.compute-1.amazonaws.com "curl -fsSL https://get.docker.com -o get-docker.sh && sudo sh get-docker.sh && sudo usermod -aG docker ubuntu && sudo apt-get update && sudo apt-get install -y docker-compose-plugin && docker --version && docker compose version"
 ```
 
-**Resultado esperado**: Debe mostrar las versiones de Docker y Docker Compose instaladas.
+**Resultado esperado**: Visualizar las versiones instaladas de Docker y Docker Compose.
 
 ---
 
-## 📁 PASO 2: Crear Estructura de Directorios en EC2
+## PASO 2: Crear la estructura de directorios en EC2
 
 ```powershell
 ssh -i "deployssh.pem" ubuntu@TU-INSTANCIA-EC2.compute-1.amazonaws.com "mkdir -p ~/miniwebapp/docker ~/miniwebapp/webapp ~/miniwebapp/prometheus ~/miniwebapp/grafana"
@@ -42,20 +43,21 @@ ssh -i "deployssh.pem" ubuntu@TU-INSTANCIA-EC2.compute-1.amazonaws.com "mkdir -p
 
 ---
 
-## 📤 PASO 3: Copiar Archivos de la Aplicación
+## PASO 3: Copiar archivos de la aplicación
 
 ```powershell
 scp -i "deployssh.pem" -r docker webapp init.sql ubuntu@TU-INSTANCIA-EC2.compute-1.amazonaws.com:~/miniwebapp/
 ```
 
 **Archivos copiados**:
+
 - `docker/` - Dockerfile, nginx.conf, entrypoint.sh
 - `webapp/` - Código fuente de la aplicación Flask
 - `init.sql` - Script de inicialización de base de datos
 
 ---
 
-## 📤 PASO 4: Copiar Docker Compose
+## PASO 4: Copiar el archivo docker-compose
 
 ```powershell
 scp -i "deployssh.pem" docker-compose.yml ubuntu@TU-INSTANCIA-EC2.compute-1.amazonaws.com:~/miniwebapp/
@@ -63,19 +65,20 @@ scp -i "deployssh.pem" docker-compose.yml ubuntu@TU-INSTANCIA-EC2.compute-1.amaz
 
 ---
 
-## 📤 PASO 5: Copiar Configuraciones de Monitoreo
+## PASO 5: Copiar configuraciones de monitoreo
 
 ```powershell
 scp -i "deployssh.pem" -r prometheus grafana ubuntu@TU-INSTANCIA-EC2.compute-1.amazonaws.com:~/miniwebapp/
 ```
 
 **Archivos copiados**:
+
 - `prometheus/` - prometheus.yml, alerts.yml
 - `grafana/` - dashboards, provisioning configs
 
 ---
 
-## ⚙️ PASO 6: Dar Permisos de Ejecución
+## PASO 6: Asignar permisos de ejecución
 
 ```powershell
 ssh -i "deployssh.pem" ubuntu@TU-INSTANCIA-EC2.compute-1.amazonaws.com "cd ~/miniwebapp && chmod +x docker/entrypoint.sh"
@@ -83,88 +86,100 @@ ssh -i "deployssh.pem" ubuntu@TU-INSTANCIA-EC2.compute-1.amazonaws.com "cd ~/min
 
 ---
 
-## 🐳 PASO 7: Construir y Levantar Contenedores
+## PASO 7: Construir y levantar contenedores
 
 ```powershell
 ssh -i "deployssh.pem" ubuntu@TU-INSTANCIA-EC2.compute-1.amazonaws.com "cd ~/miniwebapp && docker compose up -d --build"
 ```
 
 **Contenedores que se crean**:
+
 1. `miniwebapp-db` - MySQL 8.0
 2. `miniwebapp-web` - Flask + Nginx + SSL
 3. `miniwebapp-prometheus` - Prometheus
 4. `miniwebapp-grafana` - Grafana
 5. `miniwebapp-node-exporter` - Node Exporter
 
-⏱️ **Tiempo estimado**: 3-5 minutos para build y start
+**Tiempo estimado**: entre 3 y 5 minutos para construir y levantar los servicios.
 
 ---
 
-## 📊 PASO 8: Ver Logs (Opcional)
+## PASO 8: Revisar logs (opcional)
 
-### Ver logs de todos los servicios:
+### Logs de todos los servicios
+
 ```powershell
 ssh -i "deployssh.pem" ubuntu@TU-INSTANCIA-EC2.compute-1.amazonaws.com "cd ~/miniwebapp && docker compose logs --tail=50"
 ```
 
-### Ver logs solo de la webapp:
+### Logs únicamente de la webapp
+
 ```powershell
 ssh -i "deployssh.pem" ubuntu@TU-INSTANCIA-EC2.compute-1.amazonaws.com "cd ~/miniwebapp && docker compose logs -f webapp"
 ```
 
 ---
 
-## 🌐 PASO 9: Acceder a los Servicios
+## PASO 9: Acceso a los servicios
 
-Reemplaza `TU-INSTANCIA-EC2` con tu DNS público de AWS:
+Reemplazar `TU-INSTANCIA-EC2` por el DNS público asignado por AWS.
 
-### Aplicación Web:
+### Aplicación web
+
 - **HTTP**: `http://TU-INSTANCIA-EC2.compute-1.amazonaws.com`
 - **HTTPS**: `https://TU-INSTANCIA-EC2.compute-1.amazonaws.com`
 
-### Grafana (Monitoreo):
+### Grafana (monitoreo)
+
 - **URL**: `http://TU-INSTANCIA-EC2.compute-1.amazonaws.com:3000`
 - **Usuario**: `admin`
 - **Password**: `admin`
 
-### Prometheus (Métricas):
+### Prometheus (métricas)
+
 - **URL**: `http://TU-INSTANCIA-EC2.compute-1.amazonaws.com:9090`
 
-### Node Exporter (Métricas del Sistema):
+### Node Exporter (métricas del sistema)
+
 - **URL**: `http://TU-INSTANCIA-EC2.compute-1.amazonaws.com:9100/metrics`
 
 ---
 
-## 🔧 Comandos Útiles para Administración
+## Comandos útiles para administración
 
-### Detener todos los servicios:
+### Detener todos los servicios
+
 ```powershell
 ssh -i "deployssh.pem" ubuntu@TU-INSTANCIA-EC2.compute-1.amazonaws.com "cd ~/miniwebapp && docker compose down"
 ```
 
-### Reiniciar todos los servicios:
+### Reiniciar todos los servicios
+
 ```powershell
 ssh -i "deployssh.pem" ubuntu@TU-INSTANCIA-EC2.compute-1.amazonaws.com "cd ~/miniwebapp && docker compose restart"
 ```
 
-### Reiniciar solo la webapp:
+### Reiniciar únicamente la webapp
+
 ```powershell
 ssh -i "deployssh.pem" ubuntu@TU-INSTANCIA-EC2.compute-1.amazonaws.com "cd ~/miniwebapp && docker compose restart webapp"
 ```
 
-### Ver uso de recursos:
+### Consultar uso de recursos
+
 ```powershell
 ssh -i "deployssh.pem" ubuntu@TU-INSTANCIA-EC2.compute-1.amazonaws.com "docker stats"
 ```
 
-### Limpiar contenedores y volúmenes:
+### Limpiar contenedores y volúmenes
+
 ```powershell
 ssh -i "deployssh.pem" ubuntu@TU-INSTANCIA-EC2.compute-1.amazonaws.com "cd ~/miniwebapp && docker compose down -v"
 ```
 
 ---
 
-## 🗄️ Base de Datos MySQL
+## Base de datos MySQL
 
 | Parámetro | Valor |
 |-----------|-------|
@@ -175,13 +190,14 @@ ssh -i "deployssh.pem" ubuntu@TU-INSTANCIA-EC2.compute-1.amazonaws.com "cd ~/min
 | Puerto | 3306 |
 
 **Tablas**:
-- `users` - Usuarios con datos de prueba (juan, maria)
+
+- `users`: usuarios de prueba (juan, maria).
 
 ---
 
-## 🏗️ Arquitectura Desplegada
+## Arquitectura desplegada
 
-```
+```text
 Internet
     ↓
 AWS Security Group (22, 80, 443, 3000, 9090, 9100)
@@ -198,31 +214,34 @@ Docker Compose
 
 ---
 
-## ⚠️ Notas Importantes
+## Notas importantes
 
-1. **Certificado SSL**: Es autofirmado, el navegador mostrará advertencia (normal en desarrollo)
-2. **Contraseñas**: Cambiar passwords de producción en `docker-compose.yml`
-3. **Grafana**: Primera vez pedirá cambiar password de admin
-4. **Firewall**: Solo abrir puertos necesarios en Security Group
-5. **Backups**: Los datos de MySQL están en un volumen Docker persistente
+1. **Certificado SSL**: es autofirmado, por lo que el navegador mostrará una advertencia (comportamiento esperado en entornos de desarrollo).
+2. **Contraseñas**: se recomienda actualizar las credenciales definitivas en `docker-compose.yml` antes de un despliegue productivo.
+3. **Grafana**: en el primer acceso se solicitará cambiar la contraseña del usuario administrador.
+4. **Firewall**: únicamente deben abrirse los puertos estrictamente necesarios en el Security Group.
+5. **Backups**: los datos de MySQL se alojan en un volumen persistente de Docker; considerar respaldos periódicos.
 
 ---
 
-## 🐛 Solución de Problemas
+## Solución de problemas
 
-### Los contenedores no inician:
+### Contenedores que no inician
+
 ```powershell
 ssh -i "deployssh.pem" ubuntu@TU-INSTANCIA-EC2.compute-1.amazonaws.com "cd ~/miniwebapp && docker compose logs"
 ```
 
-### No puedo acceder a la webapp:
-1. Verificar Security Group (puertos 80, 443 abiertos)
-2. Verificar que contenedor webapp esté "Up"
-3. Verificar logs: `docker compose logs webapp`
+### Imposible acceder a la webapp
 
-### Error de conexión a base de datos:
-1. Esperar que MySQL esté "healthy": `docker compose ps`
-2. Ver logs de MySQL: `docker compose logs db`
+1. Verificar el Security Group (puertos 80 y 443 abiertos).
+2. Confirmar que el contenedor webapp esté en estado "Up".
+3. Revisar los registros con `docker compose logs webapp`.
+
+### Error de conexión a la base de datos
+
+1. Esperar a que MySQL aparezca como "healthy" mediante `docker compose ps`.
+2. Revisar los registros de MySQL con `docker compose logs db`.
 
 ---
 
