@@ -28,7 +28,9 @@ Source: `0.0.0.0/0` (o una dirección IP específica para mayor seguridad).
 ## PASO 1: Instalar Docker y Docker Compose en EC2
 
 ```powershell
-ssh -i "deployssh.pem" ubuntu@TU-INSTANCIA-EC2.compute-1.amazonaws.com "curl -fsSL https://get.docker.com -o get-docker.sh && sudo sh get-docker.sh && sudo usermod -aG docker ubuntu && sudo apt-get update && sudo apt-get install -y docker-compose-plugin && docker --version && docker compose version"
+# Exportamos la variable remoteHost como principio DRY
+export remoteHost="TU-INSTANCIA-EC2.compute-1.amazonaws.com"
+ssh -i "deployssh.pem" ubuntu@$remoteHost "curl -fsSL https://get.docker.com -o get-docker.sh && sudo sh get-docker.sh && sudo usermod -aG docker ubuntu && docker --version && docker compose version"
 ```
 
 **Resultado esperado**: Visualizar las versiones instaladas de Docker y Docker Compose.
@@ -38,7 +40,7 @@ ssh -i "deployssh.pem" ubuntu@TU-INSTANCIA-EC2.compute-1.amazonaws.com "curl -fs
 ## PASO 2: Crear la estructura de directorios en EC2
 
 ```powershell
-ssh -i "deployssh.pem" ubuntu@TU-INSTANCIA-EC2.compute-1.amazonaws.com "mkdir -p ~/miniwebapp/docker ~/miniwebapp/webapp ~/miniwebapp/prometheus ~/miniwebapp/grafana"
+ssh -i "deployssh.pem" ubuntu@$remoteHost "mkdir -p ~/miniwebapp/docker ~/miniwebapp/webapp ~/miniwebapp/prometheus ~/miniwebapp/grafana"
 ```
 
 ---
@@ -46,7 +48,7 @@ ssh -i "deployssh.pem" ubuntu@TU-INSTANCIA-EC2.compute-1.amazonaws.com "mkdir -p
 ## PASO 3: Copiar archivos de la aplicación
 
 ```powershell
-scp -i "deployssh.pem" -r docker webapp init.sql ubuntu@TU-INSTANCIA-EC2.compute-1.amazonaws.com:~/miniwebapp/
+scp -i "deployssh.pem" -r docker webapp init.sql ubuntu@$remoteHost:~/miniwebapp/
 ```
 
 **Archivos copiados**:
@@ -60,7 +62,7 @@ scp -i "deployssh.pem" -r docker webapp init.sql ubuntu@TU-INSTANCIA-EC2.compute
 ## PASO 4: Copiar el archivo docker-compose
 
 ```powershell
-scp -i "deployssh.pem" docker-compose.yml ubuntu@TU-INSTANCIA-EC2.compute-1.amazonaws.com:~/miniwebapp/
+scp -i "deployssh.pem" docker-compose.yml ubuntu@$remoteHost:~/miniwebapp/
 ```
 
 ---
@@ -68,7 +70,7 @@ scp -i "deployssh.pem" docker-compose.yml ubuntu@TU-INSTANCIA-EC2.compute-1.amaz
 ## PASO 5: Copiar configuraciones de monitoreo
 
 ```powershell
-scp -i "deployssh.pem" -r prometheus grafana ubuntu@TU-INSTANCIA-EC2.compute-1.amazonaws.com:~/miniwebapp/
+scp -i "deployssh.pem" -r prometheus grafana ubuntu@$remoteHost:~/miniwebapp/
 ```
 
 **Archivos copiados**:
@@ -81,7 +83,7 @@ scp -i "deployssh.pem" -r prometheus grafana ubuntu@TU-INSTANCIA-EC2.compute-1.a
 ## PASO 6: Asignar permisos de ejecución
 
 ```powershell
-ssh -i "deployssh.pem" ubuntu@TU-INSTANCIA-EC2.compute-1.amazonaws.com "cd ~/miniwebapp && chmod +x docker/entrypoint.sh"
+ssh -i "deployssh.pem" ubuntu@$remoteHost "cd ~/miniwebapp && chmod +x docker/entrypoint.sh"
 ```
 
 ---
@@ -89,7 +91,7 @@ ssh -i "deployssh.pem" ubuntu@TU-INSTANCIA-EC2.compute-1.amazonaws.com "cd ~/min
 ## PASO 7: Construir y levantar contenedores
 
 ```powershell
-ssh -i "deployssh.pem" ubuntu@TU-INSTANCIA-EC2.compute-1.amazonaws.com "cd ~/miniwebapp && docker compose up -d --build"
+ssh -i "deployssh.pem" ubuntu@$remoteHost "cd ~/miniwebapp && docker compose up -d --build"
 ```
 
 **Contenedores que se crean**:
@@ -109,39 +111,39 @@ ssh -i "deployssh.pem" ubuntu@TU-INSTANCIA-EC2.compute-1.amazonaws.com "cd ~/min
 ### Logs de todos los servicios
 
 ```powershell
-ssh -i "deployssh.pem" ubuntu@TU-INSTANCIA-EC2.compute-1.amazonaws.com "cd ~/miniwebapp && docker compose logs --tail=50"
+ssh -i "deployssh.pem" ubuntu@$remoteHost "cd ~/miniwebapp && docker compose logs --tail=50"
 ```
 
 ### Logs únicamente de la webapp
 
 ```powershell
-ssh -i "deployssh.pem" ubuntu@TU-INSTANCIA-EC2.compute-1.amazonaws.com "cd ~/miniwebapp && docker compose logs -f webapp"
+ssh -i "deployssh.pem" ubuntu@$remoteHost "cd ~/miniwebapp && docker compose logs -f webapp"
 ```
 
 ---
 
 ## PASO 9: Acceso a los servicios
 
-Reemplazar `TU-INSTANCIA-EC2` por el DNS público asignado por AWS.
+Asegúrate de exportar `remoteHost` con el DNS público asignado por AWS antes de ejecutar los comandos.
 
 ### Aplicación web
 
-- **HTTP**: `http://TU-INSTANCIA-EC2.compute-1.amazonaws.com`
-- **HTTPS**: `https://TU-INSTANCIA-EC2.compute-1.amazonaws.com`
+- **HTTP**: `http://$remoteHost`
+- **HTTPS**: `https://$remoteHost`
 
 ### Grafana (monitoreo)
 
-- **URL**: `http://TU-INSTANCIA-EC2.compute-1.amazonaws.com:3000`
+- **URL**: `http://$remoteHost:3000`
 - **Usuario**: `admin`
 - **Password**: `admin`
 
 ### Prometheus (métricas)
 
-- **URL**: `http://TU-INSTANCIA-EC2.compute-1.amazonaws.com:9090`
+- **URL**: `http://$remoteHost:9090`
 
 ### Node Exporter (métricas del sistema)
 
-- **URL**: `http://TU-INSTANCIA-EC2.compute-1.amazonaws.com:9100/metrics`
+- **URL**: `http://$remoteHost:9100/metrics`
 
 ---
 
@@ -150,31 +152,31 @@ Reemplazar `TU-INSTANCIA-EC2` por el DNS público asignado por AWS.
 ### Detener todos los servicios
 
 ```powershell
-ssh -i "deployssh.pem" ubuntu@TU-INSTANCIA-EC2.compute-1.amazonaws.com "cd ~/miniwebapp && docker compose down"
+ssh -i "deployssh.pem" ubuntu@$remoteHost "cd ~/miniwebapp && docker compose down"
 ```
 
 ### Reiniciar todos los servicios
 
 ```powershell
-ssh -i "deployssh.pem" ubuntu@TU-INSTANCIA-EC2.compute-1.amazonaws.com "cd ~/miniwebapp && docker compose restart"
+ssh -i "deployssh.pem" ubuntu@$remoteHost "cd ~/miniwebapp && docker compose restart"
 ```
 
 ### Reiniciar únicamente la webapp
 
 ```powershell
-ssh -i "deployssh.pem" ubuntu@TU-INSTANCIA-EC2.compute-1.amazonaws.com "cd ~/miniwebapp && docker compose restart webapp"
+ssh -i "deployssh.pem" ubuntu@$remoteHost "cd ~/miniwebapp && docker compose restart webapp"
 ```
 
 ### Consultar uso de recursos
 
 ```powershell
-ssh -i "deployssh.pem" ubuntu@TU-INSTANCIA-EC2.compute-1.amazonaws.com "docker stats"
+ssh -i "deployssh.pem" ubuntu@$remoteHost "docker stats"
 ```
 
 ### Limpiar contenedores y volúmenes
 
 ```powershell
-ssh -i "deployssh.pem" ubuntu@TU-INSTANCIA-EC2.compute-1.amazonaws.com "cd ~/miniwebapp && docker compose down -v"
+ssh -i "deployssh.pem" ubuntu@$remoteHost "cd ~/miniwebapp && docker compose down -v"
 ```
 
 ---
@@ -229,7 +231,7 @@ Docker Compose
 ### Contenedores que no inician
 
 ```powershell
-ssh -i "deployssh.pem" ubuntu@TU-INSTANCIA-EC2.compute-1.amazonaws.com "cd ~/miniwebapp && docker compose logs"
+ssh -i "deployssh.pem" ubuntu@$remoteHost "cd ~/miniwebapp && docker compose logs"
 ```
 
 ### Imposible acceder a la webapp
@@ -246,3 +248,4 @@ ssh -i "deployssh.pem" ubuntu@TU-INSTANCIA-EC2.compute-1.amazonaws.com "cd ~/min
 ---
 
 **Fecha de Creación**: 14 de Noviembre de 2025
+**Fecha de Actualización**: 16 de Noviembre de 2025
