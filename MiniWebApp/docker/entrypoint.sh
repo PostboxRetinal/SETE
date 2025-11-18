@@ -3,7 +3,7 @@ set -e
 
 # Genera certificados SSL autofirmados con nuestra configuración custom para CloudNova
 if [ ! -f /etc/nginx/ssl/server.crt ]; then
-    openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+    openssl req -x509 -nodes -days 90 -newkey rsa:4096 \
         -keyout /etc/nginx/ssl/server.key \
         -out /etc/nginx/ssl/server.crt \
         -subj "/C=CO/ST=VAC/L=Cali/O=CloudNova/CN=cloudnova.local"
