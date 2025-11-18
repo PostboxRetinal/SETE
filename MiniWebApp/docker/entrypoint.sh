@@ -6,7 +6,7 @@ if [ ! -f /etc/nginx/ssl/server.crt ]; then
     openssl req -x509 -nodes -days 90 -newkey rsa:4096 \
         -keyout /etc/nginx/ssl/server.key \
         -out /etc/nginx/ssl/server.crt \
-        -subj "/C=CO/ST=VAC/L=Cali/O=CloudNova/CN=cloudnova.local"
+        -subj "/C=CO/ST=VAC/L=Cali/O=CloudNova/OU=ServiciosTelematicos/CN=cloudnova.local"
 fi
 
 # Iniciar Nginx

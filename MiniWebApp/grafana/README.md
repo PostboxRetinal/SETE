@@ -61,10 +61,10 @@ El provisioning de Grafana está configurado para:
 - Actualizar dashboards cada 10 segundos
 - Permitir ediciones desde la UI
 
-## Credenciales predeterminadas
+## Credenciales (actualizadas)
 
 - **Usuario**: admin
-- **Contraseña**: admin
+- **Contraseña**: cloudnova*
 - **Puerto**: 3000
 
 ## Estructura de archivos

@@ -1,4 +1,3 @@
-# Configuración de Prometheus para CloudNova
 # Monitoreo de aplicación web, sistema y métricas personalizadas
 
 global:
@@ -24,8 +23,9 @@ scrape_configs:
   
   # Monitoreo del propio Prometheus
   - job_name: 'prometheus'
+    metrics_path: '/prometheus/metrics'
     static_configs:
-      - targets: ['localhost:9090']
+      - targets: ['prometheus:9090']
         labels:
           service: 'prometheus'
           component: 'monitoring'
@@ -37,10 +37,3 @@ scrape_configs:
         labels:
           service: 'node-exporter'
           component: 'system-metrics'
-    # Métricas relevantes:
-    # - node_cpu_seconds_total: Uso de CPU por núcleo y modo
-    # - node_memory_MemAvailable_bytes: Memoria disponible
-    # - node_filesystem_avail_bytes: Espacio disponible en disco
-    # - node_network_receive_bytes_total: Bytes recibidos por red
-    # - node_network_transmit_bytes_total: Bytes transmitidos por red
-    # - node_disk_io_time_seconds_total: Tiempo de I/O del disco
