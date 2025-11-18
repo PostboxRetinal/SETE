@@ -28,9 +28,15 @@ Source: `0.0.0.0/0` (o una dirección IP específica para mayor seguridad).
 ## PASO 1: Instalar Docker y Docker Compose en EC2
 
 ```powershell
-# Exportamos la variable remoteHost como principio DRY
-export remoteHost="TU-INSTANCIA-EC2.compute-1.amazonaws.com"
-ssh -i "deployssh.pem" ubuntu@$remoteHost "curl -fsSL https://get.docker.com -o get-docker.sh && sudo sh get-docker.sh && sudo usermod -aG docker ubuntu && docker --version && docker compose version"
+# Exportamos la variable remoteHost como principio DRY (en Linux se usa export, en windows bajo powershell se define la variable)
+# Copia según plataforma
+#
+# WINDOWS
+# $remoteHost="TU-INSTANCIA-EC2.compute-1.amazonaws.com"
+# 
+# LINUX
+# export remoteHost="TU-INSTANCIA-EC2.compute-1.amazonaws.com"
+ssh -i "deployssh.pem" ubuntu@${remoteHost} "curl -fsSL https://get.docker.com -o get-docker.sh && sudo sh get-docker.sh && sudo usermod -aG docker ubuntu && docker --version && docker compose version"
 ```
 
 **Resultado esperado**: Visualizar las versiones instaladas de Docker y Docker Compose.
@@ -40,7 +46,7 @@ ssh -i "deployssh.pem" ubuntu@$remoteHost "curl -fsSL https://get.docker.com -o 
 ## PASO 2: Crear la estructura de directorios en EC2
 
 ```powershell
-ssh -i "deployssh.pem" ubuntu@$remoteHost "mkdir -p ~/miniwebapp/docker ~/miniwebapp/webapp ~/miniwebapp/prometheus ~/miniwebapp/grafana"
+ssh -i "deployssh.pem" ubuntu@$remoteHost "mkdir -p ~/MiniWebApp/{docker,webapp,prometheus,grafana}"
 ```
 
 ---
@@ -48,51 +54,27 @@ ssh -i "deployssh.pem" ubuntu@$remoteHost "mkdir -p ~/miniwebapp/docker ~/miniwe
 ## PASO 3: Copiar archivos de la aplicación
 
 ```powershell
-scp -i "deployssh.pem" -r docker webapp init.sql ubuntu@$remoteHost:~/miniwebapp/
+scp -i "deployssh.pem" -r prometheus grafana docker webapp init.sql docker-compose.yml ubuntu@${remoteHost}:~/MiniWebApp/
 ```
 
 **Archivos copiados**:
 
 - `docker/` - Dockerfile, nginx.conf, entrypoint.sh
 - `webapp/` - Código fuente de la aplicación Flask
-- `init.sql` - Script de inicialización de base de datos
-
----
-
-## PASO 4: Copiar el archivo docker-compose
-
-```powershell
-scp -i "deployssh.pem" docker-compose.yml ubuntu@$remoteHost:~/miniwebapp/
-```
-
----
-
-## PASO 5: Copiar configuraciones de monitoreo
-
-```powershell
-scp -i "deployssh.pem" -r prometheus grafana ubuntu@$remoteHost:~/miniwebapp/
-```
-
-**Archivos copiados**:
-
 - `prometheus/` - prometheus.yml, alerts.yml
 - `grafana/` - dashboards, provisioning configs
+- `init.sql` - Script de inicialización de base de datos
+- `docker-compose.yml` - Archivo de configuración para docker compose
 
 ---
 
-## PASO 6: Asignar permisos de ejecución
+## PASO 4: Asignar permisos de ejecución y ejecutar compose
 
 ```powershell
-ssh -i "deployssh.pem" ubuntu@$remoteHost "cd ~/miniwebapp && chmod +x docker/entrypoint.sh"
+ssh -i "deployssh.pem" ubuntu@${remoteHost} "cd ~/MiniWebApp && chmod +x docker/entrypoint.sh && docker compose up -d --build"
 ```
 
 ---
-
-## PASO 7: Construir y levantar contenedores
-
-```powershell
-ssh -i "deployssh.pem" ubuntu@$remoteHost "cd ~/miniwebapp && docker compose up -d --build"
-```
 
 **Contenedores que se crean**:
 
@@ -106,23 +88,23 @@ ssh -i "deployssh.pem" ubuntu@$remoteHost "cd ~/miniwebapp && docker compose up 
 
 ---
 
-## PASO 8: Revisar logs (opcional)
+## PASO 5: Revisar logs (opcional)
 
 ### Logs de todos los servicios
 
 ```powershell
-ssh -i "deployssh.pem" ubuntu@$remoteHost "cd ~/miniwebapp && docker compose logs --tail=50"
+ssh -i "deployssh.pem" ubuntu@${remoteHost} "cd ~/MiniWebApp && docker compose logs --tail=50"
 ```
 
 ### Logs únicamente de la webapp
 
 ```powershell
-ssh -i "deployssh.pem" ubuntu@$remoteHost "cd ~/miniwebapp && docker compose logs -f webapp"
+ssh -i "deployssh.pem" ubuntu@${remoteHost} "cd ~/MiniWebApp && docker compose logs -f webapp"
 ```
 
 ---
 
-## PASO 9: Acceso a los servicios
+## PASO 6: Acceso a los servicios
 
 Asegúrate de exportar `remoteHost` con el DNS público asignado por AWS antes de ejecutar los comandos.
 
@@ -152,31 +134,31 @@ Asegúrate de exportar `remoteHost` con el DNS público asignado por AWS antes d
 ### Detener todos los servicios
 
 ```powershell
-ssh -i "deployssh.pem" ubuntu@$remoteHost "cd ~/miniwebapp && docker compose down"
+ssh -i "deployssh.pem" ubuntu@${remoteHost} "cd ~/MiniWebApp && docker compose down"
 ```
 
 ### Reiniciar todos los servicios
 
 ```powershell
-ssh -i "deployssh.pem" ubuntu@$remoteHost "cd ~/miniwebapp && docker compose restart"
+ssh -i "deployssh.pem" ubuntu@${remoteHost} "cd ~/MiniWebApp && docker compose restart"
 ```
 
 ### Reiniciar únicamente la webapp
 
 ```powershell
-ssh -i "deployssh.pem" ubuntu@$remoteHost "cd ~/miniwebapp && docker compose restart webapp"
+ssh -i "deployssh.pem" ubuntu@${remoteHost} "cd ~/MiniWebApp && docker compose restart webapp"
 ```
 
 ### Consultar uso de recursos
 
 ```powershell
-ssh -i "deployssh.pem" ubuntu@$remoteHost "docker stats"
+ssh -i "deployssh.pem" ubuntu@${remoteHost} "docker stats"
 ```
 
 ### Limpiar contenedores y volúmenes
 
 ```powershell
-ssh -i "deployssh.pem" ubuntu@$remoteHost "cd ~/miniwebapp && docker compose down -v"
+ssh -i "deployssh.pem" ubuntu@${remoteHost} "cd ~/MiniWebApp && docker compose down -v"
 ```
 
 ---
@@ -231,7 +213,7 @@ Docker Compose
 ### Contenedores que no inician
 
 ```powershell
-ssh -i "deployssh.pem" ubuntu@$remoteHost "cd ~/miniwebapp && docker compose logs"
+ssh -i "deployssh.pem" ubuntu@${remoteHost} "cd ~/miniwebapp && docker compose logs"
 ```
 
 ### Imposible acceder a la webapp
@@ -247,4 +229,4 @@ ssh -i "deployssh.pem" ubuntu@$remoteHost "cd ~/miniwebapp && docker compose log
 
 ---
 
-**Fecha de Creación**: 14 de Noviembre de 2025
+**Fecha de Actualización**: 17 de Noviembre de 2025
