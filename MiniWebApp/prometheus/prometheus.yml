@@ -44,31 +44,3 @@ scrape_configs:
     # - node_network_receive_bytes_total: Bytes recibidos por red
     # - node_network_transmit_bytes_total: Bytes transmitidos por red
     # - node_disk_io_time_seconds_total: Tiempo de I/O del disco
-
-  # Monitoreo de la aplicación web (si expone métricas)
-  - job_name: 'webapp'
-    static_configs:
-      - targets: ['webapp:5000']
-        labels:
-          service: 'miniwebapp'
-          component: 'application'
-    metrics_path: '/metrics'
-    scheme: http
-    # Si la aplicación no expone /metrics, este scrape fallará
-    # pero el resto del monitoreo funcionará correctamente
-
-  # Monitoreo de MySQL (si se configura mysqld_exporter)
-  # - job_name: 'mysql'
-  #   static_configs:
-  #     - targets: ['mysql-exporter:9104']
-  #       labels:
-  #         service: 'mysql'
-  #         component: 'database'
-
-  # Monitoreo de Nginx (si se configura nginx-exporter)
-  # - job_name: 'nginx'
-  #   static_configs:
-  #     - targets: ['nginx-exporter:9113']
-  #       labels:
-  #         service: 'nginx'
-  #         component: 'webserver'

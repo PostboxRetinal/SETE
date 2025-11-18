@@ -88,11 +88,11 @@ Vagrant.configure("2") do |config|
       echo "==========================================="
       echo ""
       echo "Accede a los servicios en:"
-      echo "  - webApp HTTPS:  https://192.168.60.10
-      echo "  - webApp HTTP:   http://192.168.60.10
-      echo "  - Prometheus:    http://192.168.60.10:9090
-      echo "  - Grafana:       http://192.168.60.10:3000
-      echo "  - Node Exporter: http://192.168.60.10:9100
+      echo "  - webApp HTTPS:  https://192.168.60.10"
+      echo "  - webApp HTTP:   http://192.168.60.10"
+      echo "  - Prometheus:    http://192.168.60.10:9090"
+      echo "  - Grafana:       http://192.168.60.10:3000"
+      echo "  - Node Exporter: http://192.168.60.10:9100"
       echo ""
       echo "Credenciales Grafana: admin / admin"
       echo "==========================================="
