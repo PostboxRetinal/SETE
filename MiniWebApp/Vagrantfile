@@ -10,7 +10,8 @@ Vagrant.configure("2") do |config|
   # SERVIDOR WEB CON DOCKER Y MONITOREO
   # ===========================================
   config.vm.define :cloudnova_local do |server|
-    server.vm.box = "generic/ubuntu2204"
+    # Imagen base de Ubuntu 22.04 LTS custom actualizada
+    server.vm.box = "postboxretinal/ubuntu-2204-updated"
     server.vm.hostname = "cloudnova"
     
     # Configuración de red
@@ -19,9 +20,6 @@ Vagrant.configure("2") do |config|
     # Configuración de puertos
     server.vm.network "forwarded_port", guest: 80, host: 8080, protocol: "tcp" # HTTP
     server.vm.network "forwarded_port", guest: 443, host: 8443, protocol: "tcp" # HTTPS
-    server.vm.network "forwarded_port", guest: 3000, host: 3000, protocol: "tcp"  # Grafana
-    server.vm.network "forwarded_port", guest: 9090, host: 9090, protocol: "tcp"  # Prometheus
-    server.vm.network "forwarded_port", guest: 9100, host: 9100, protocol: "tcp"  # Node Exporter
     
     # Recursos de la VM
     server.vm.provider "virtualbox" do |vb|
@@ -85,11 +83,11 @@ Vagrant.configure("2") do |config|
       echo "Desplegado 10 de 10 :)"
       echo "==========================================="
       echo ""
-      echo "Accede a los servicios locales en:"
-      echo "  - webApp:   http://192.168.60.10"
-      echo "  - Prometheus:    http://192.168.60.10:9090"
-      echo "  - Grafana:       http://192.168.60.10:3000"
-      echo "  - Node Exporter: http://192.168.60.10:9100"
+      echo "Accede a los servicios locales mediante HTTPS:"
+      echo "  - webApp:        https://192.168.60.10"
+      echo "  - Prometheus:    https://192.168.60.10/prometheus"
+      echo "  - Grafana:       https://192.168.60.10/grafana"
+      echo "  - Node Exporter: https://192.168.60.10/node-exporter"
       echo ""
       echo "Credenciales Grafana: admin / cloudnova*"
       echo "==========================================="
