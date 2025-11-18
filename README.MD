@@ -2,24 +2,9 @@
 
 Repositorio académico para la materia **Servicios Telemáticos**. Cada rama documenta las configuraciones, prácticas y parciales desarrollados durante el semestre.
 
-## Ramas activas
-
-- **`main`** – Información general del curso y enlaces a cada entrega.
-- **`primerCorte`** – Configuraciones de Apache2, BIND9 y PAM utilizadas en el primer parcial.
-- **`segundoCorte`** – Entregables del segundo parcial: cortafuegos UFW, DNS maestro/esclavo y FTP seguro.
-- **`tercerCorte`** – Reservada para el tercer parcial (pendiente de desarrollo).
-
-## Primer Parcial (`primerCorte`)
-
-Implementación de servicios de red básicos sobre la red `192.168.51.0/24`:
-
-- **Apache2** con autenticación PAM para restringir el acceso web.
-- **BIND9** como servidor DNS maestro con zonas directa e inversa para `empresa.local`.
-- **Automatización** mediante archivos de configuración listos para copiar en `/etc`.
-
 ## Segundo Parcial (`segundoCorte`)
 
-### Objetivo del encargo
+### Objetivo del trabajo
 
 Implementar firewall UFW que publica servicios DNS y FTP con alta disponibilidad y conexiones cifradas, reutilizando las direcciones de laboratorio `192.168.56.0/24`.
 
