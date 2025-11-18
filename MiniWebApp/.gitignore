@@ -50,3 +50,6 @@ ssl/*.pem
 *.tmp
 tmp/
 temp/
+
+# private keys
+deployssh.pem

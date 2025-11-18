@@ -3,8 +3,8 @@
 ## Requisitos previos
 
 - Instancia EC2 Ubuntu 22.04 en AWS
-- Archivo `deployssh.pem` con permisos configurados
-- Security Group con puertos abiertos
+- Archivo de clave denominado `deployssh.pem` con permisos configurados (0400)
+- Security Group con puertos abiertos (22,80,443,3000,5000,9090,9100)
 
 ---
 
@@ -18,6 +18,7 @@ Es necesario acceder a la consola de AWS EC2, sección **Security Groups**, y ha
 | 80 | TCP | HTTP (Webapp) |
 | 443 | TCP | HTTPS (Webapp) |
 | 3000 | TCP | Grafana |
+| 5000 | TCP | nginx Proxy |
 | 9090 | TCP | Prometheus |
 | 9100 | TCP | Node Exporter |
 
@@ -36,7 +37,7 @@ Source: `0.0.0.0/0` (o una dirección IP específica para mayor seguridad).
 # 
 # LINUX
 # export remoteHost="TU-INSTANCIA-EC2.compute-1.amazonaws.com"
-ssh -i "deployssh.pem" ubuntu@${remoteHost} "curl -fsSL https://get.docker.com -o get-docker.sh && sudo sh get-docker.sh && sudo usermod -aG docker ubuntu && docker --version && docker compose version"
+ssh -i "deployssh.pem" ubuntu@${remoteHost} "curl -fsSL https://get.docker.com -o get-docker.sh && sudo sh get-docker.sh && sudo usermod -aG docker ubuntu && docker --version && docker compose version && echo 'Reiniciando para aplicar cambios de usermod...' && sudo reboot 0"
 ```
 
 **Resultado esperado**: Visualizar las versiones instaladas de Docker y Docker Compose.
@@ -184,7 +185,7 @@ ssh -i "deployssh.pem" ubuntu@${remoteHost} "cd ~/MiniWebApp && docker compose d
 ```text
 Internet
     ↓
-AWS Security Group (22, 80, 443, 3000, 9090, 9100)
+AWS Security Group (22, 80, 443, 3000, 5000, 9090, 9100)
     ↓
 EC2 Instance (Ubuntu 22.04)
     ↓
