@@ -3,12 +3,11 @@
 ## Requisitos previos
 
 - Instancia EC2 Ubuntu 22.04 en AWS
-- Archivo de clave denominado `deployssh.pem` con permisos configurados (0400)
-- Security Group con puertos abiertos (22,80,443,3000,5000,9090,9100)
+- Par de llave privada denominada `deployssh.pem` con permisos configurados (0400)
 
 ---
 
-## PASO 0: Configurar el Security Group en AWS
+## PASO 1: Configurar el Security Group en AWS
 
 Es necesario acceder a la consola de AWS EC2, sección **Security Groups**, y habilitar los siguientes puertos:
 
@@ -17,16 +16,12 @@ Es necesario acceder a la consola de AWS EC2, sección **Security Groups**, y ha
 | 22 | TCP | SSH |
 | 80 | TCP | HTTP (Webapp) |
 | 443 | TCP | HTTPS (Webapp) |
-| 3000 | TCP | Grafana |
-| 5000 | TCP | nginx Proxy |
-| 9090 | TCP | Prometheus |
-| 9100 | TCP | Node Exporter |
 
 Source: `0.0.0.0/0` (o una dirección IP específica para mayor seguridad).
 
 ---
 
-## PASO 1: Instalar Docker y Docker Compose en EC2
+## PASO 2: Instalar Docker y Docker Compose en EC2
 
 ```powershell
 # Exportamos la variable remoteHost como principio DRY (en Linux se usa export, en windows bajo powershell se define la variable)
@@ -37,14 +32,14 @@ Source: `0.0.0.0/0` (o una dirección IP específica para mayor seguridad).
 # 
 # LINUX
 # export remoteHost="TU-INSTANCIA-EC2.compute-1.amazonaws.com"
-ssh -i "deployssh.pem" ubuntu@${remoteHost} "curl -fsSL https://get.docker.com -o get-docker.sh && sudo sh get-docker.sh && sudo usermod -aG docker ubuntu && docker --version && docker compose version && echo 'Reiniciando para aplicar cambios de usermod...' && sudo reboot 0"
+ssh -i "deployssh.pem" ubuntu@${remoteHost} "curl -fsSL https://get.docker.com -o get-docker.sh && sudo sh get-docker.sh && sudo usermod -aG docker ubuntu && docker --version && docker compose version"
 ```
 
 **Resultado esperado**: Visualizar las versiones instaladas de Docker y Docker Compose.
 
 ---
 
-## PASO 2: Crear la estructura de directorios en EC2
+## PASO 3: Crear la estructura de directorios en EC2
 
 ```powershell
 ssh -i "deployssh.pem" ubuntu@$remoteHost "mkdir -p ~/MiniWebApp/{docker,webapp,prometheus,grafana}"
@@ -52,7 +47,7 @@ ssh -i "deployssh.pem" ubuntu@$remoteHost "mkdir -p ~/MiniWebApp/{docker,webapp,
 
 ---
 
-## PASO 3: Copiar archivos de la aplicación
+## PASO 4: Copiar archivos de la aplicación
 
 ```powershell
 scp -i "deployssh.pem" -r prometheus grafana docker webapp init.sql docker-compose.yml ubuntu@${remoteHost}:~/MiniWebApp/
@@ -69,10 +64,10 @@ scp -i "deployssh.pem" -r prometheus grafana docker webapp init.sql docker-compo
 
 ---
 
-## PASO 4: Asignar permisos de ejecución y ejecutar compose
+## PASO 5: Asignar permisos de ejecución y ejecutar compose
 
 ```powershell
-ssh -i "deployssh.pem" ubuntu@${remoteHost} "cd ~/MiniWebApp && chmod +x docker/entrypoint.sh && docker compose up -d --build"
+ssh -i "deployssh.pem" ubuntu@${remoteHost} "cd ~/MiniWebApp && chmod +x docker/entrypoint.sh && docker compose up --build -d"
 ```
 
 ---
@@ -89,7 +84,7 @@ ssh -i "deployssh.pem" ubuntu@${remoteHost} "cd ~/MiniWebApp && chmod +x docker/
 
 ---
 
-## PASO 5: Revisar logs (opcional)
+## Revisar logs (opcional)
 
 ### Logs de todos los servicios
 
@@ -111,22 +106,21 @@ Asegúrate de exportar `remoteHost` con el DNS público asignado por AWS antes d
 
 ### Aplicación web
 
-- **HTTP**: `http://$remoteHost`
 - **HTTPS**: `https://$remoteHost`
 
 ### Grafana (monitoreo)
 
-- **URL**: `http://$remoteHost:3000`
+- **URL**: `http://$remoteHost/grafana`
 - **Usuario**: `admin`
 - **Password**: `admin`
 
 ### Prometheus (métricas)
 
-- **URL**: `http://$remoteHost:9090`
+- **URL**: `http://$remoteHost/prometheus`
 
 ### Node Exporter (métricas del sistema)
 
-- **URL**: `http://$remoteHost:9100/metrics`
+- **URL**: `http://$remoteHost/node-exporter`
 
 ---
 
@@ -185,7 +179,7 @@ ssh -i "deployssh.pem" ubuntu@${remoteHost} "cd ~/MiniWebApp && docker compose d
 ```text
 Internet
     ↓
-AWS Security Group (22, 80, 443, 3000, 5000, 9090, 9100)
+AWS Security Group
     ↓
 EC2 Instance (Ubuntu 22.04)
     ↓
@@ -201,11 +195,11 @@ Docker Compose
 
 ## Notas importantes
 
-1. **Certificado SSL**: es autofirmado, por lo que el navegador mostrará una advertencia (comportamiento esperado en entornos de desarrollo).
+1. **Certificado SSL**: Como buena práctica DevSecOps se consumen todos los microservicios mediante un proxy reverso con SSL autofirmado, por lo que el navegador mostrará una advertencia (comportamiento esperado en entornos de desarrollo).
 2. **Contraseñas**: se recomienda actualizar las credenciales definitivas en `docker-compose.yml` antes de un despliegue productivo.
-3. **Grafana**: en el primer acceso se solicitará cambiar la contraseña del usuario administrador.
+3. **Grafana**: se incluyen crendenciales actualizadas, diferentes a las estándar.
 4. **Firewall**: únicamente deben abrirse los puertos estrictamente necesarios en el Security Group.
-5. **Backups**: los datos de MySQL se alojan en un volumen persistente de Docker; considerar respaldos periódicos.
+5. **Backups**: los datos de MySQL se alojan en un volumen persistente de Docker; considerar respaldos periódicos.}
 
 ---
 
